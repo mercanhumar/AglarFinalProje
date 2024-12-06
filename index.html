@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Messaging</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    #chat-container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #message-area {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+    }
+    #input-container {
+      display: flex;
+      gap: 10px;
+    }
+    #message-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    #send-button, #broadcast-button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #send-button:hover, #broadcast-button:hover {
+      background-color: #218838;
+    }
+    .message {
+      margin-bottom: 10px;
+    }
+    .message-sender {
+      font-weight: bold;
+      color: #333;
+    }
+    .message-content {
+      margin-left: 10px;
+    }
+    .message-status {
+      font-size: 0.8em;
+      color: gray;
+      margin-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <h2>Real-Time Messaging</h2>
+    <div id="message-area"></div>
+    <div id="input-container">
+      <input type="text" id="message-input" placeholder="Type a message...">
+      <button id="send-button">Send</button>
+      <button id="broadcast-button">Broadcast</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Ensure the user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You are not authorized. Please log in first.');
+      window.location.href = '/login.html'; // Redirect to login page
+    }
+
+    const socket = io('https://localhost:5000', {
+      auth: { token }, // Send token during WebSocket handshake
+    });
+
+    const messageArea = document.getElementById('message-area');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const broadcastButton = document.getElementById('broadcast-button');
+
+    // Handle incoming messages
+    socket.on('receive_message', (message) => {
+      displayMessage(message);
+    });
+
+    // Handle unauthorized access
+    socket.on('connect_error', (err) => {
+      if (err.message === 'Authentication error') {
+        alert('Authentication failed. Please log in again.');
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+      }
+    });
+
+    // Send an individual message
+    sendButton.addEventListener('click', () => {
+      const content = messageInput.value;
+      if (content) {
+        const recipientId = prompt('Enter recipient ID:');
+        if (recipientId) {
+          socket.emit('send_message', { recipientId, content });
+          messageInput.value = '';
+        }
+      }
+    });
+
+    // Broadcast a message
+    broadcastButton.addEventListener('click', () => {
+      const content = messageInput.value;
+      if (content) {
+        socket.emit('broadcast_message', { content });
+        messageInput.value = '';
+      }
+    });
+
+    // Display messages in the chat area
+    function displayMessage(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message');
+      messageDiv.innerHTML = `
+        <div class="message-sender">${message.senderId || 'Broadcast'}:</div>
+        <div class="message-content">${message.content}</div>
+        <div class="message-status">${message.status || 'sent'}</div>
+      `;
+      messageArea.appendChild(messageDiv);
+      messageArea.scrollTop = messageArea.scrollHeight;
+    }
+  </script>
+</body>
+</html>
