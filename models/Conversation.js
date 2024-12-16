@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const conversationSchema = new mongoose.Schema({
   participants: [
     {
-      type: String, // User IDs
+      type: String, // userId from User model
       required: true,
     },
   ],
@@ -17,7 +17,7 @@ const conversationSchema = new mongoose.Schema({
   },
 });
 
-conversationSchema.pre('save', function (next) {
+conversationSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });

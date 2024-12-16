@@ -4,11 +4,15 @@ const messageSchema = new mongoose.Schema({
   conversationId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Conversation',
-    required: true,
+    required: false // Not strictly required if you're not always using conversationId
   },
   senderId: {
     type: String,
-    required: true,
+    required: true
+  },
+  recipientId: {
+    type: String,
+    required: true
   },
   content: {
     type: String,

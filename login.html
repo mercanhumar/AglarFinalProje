@@ -34,6 +34,7 @@
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 4px;
+      box-sizing: border-box;
     }
     button {
       width: 100%;
@@ -47,11 +48,25 @@
     button:hover {
       background-color: #0056b3;
     }
+    .error-message {
+      color: red;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .signup-link {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .signup-link a {
+      color: #007bff;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Login</h2>
+    <div id="error-message" class="error-message"></div>
     <form id="loginForm">
       <div class="form-group">
         <label for="username">Username</label>
@@ -63,25 +78,48 @@
       </div>
       <button type="submit">Login</button>
     </form>
+    <div class="signup-link">
+      Don't have an account? <a href="/signup.html">Sign up here</a>
+    </div>
   </div>
 
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
+      const errorMessage = document.getElementById('error-message');
+      console.log('Submitting login form with:', { username, password });
 
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+      try {
+        console.log('Attempting login with:', { username });
+        errorMessage.textContent = ''; // Clear any previous error
+        
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password })
+        });
 
-      if (response.ok) {
-        alert('Login successful!');
-        window.location.href = '/index.html'; // Redirect to chat page
-      } else {
-        alert('Invalid username or password');
+        const data = await response.json();
+
+        if (response.ok) {
+          // Store the token
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userId', data.user.id);
+          localStorage.setItem('username', data.user.username);
+          
+          // Redirect to main chat page
+          window.location.href = '/index.html';
+        } else {
+          errorMessage.textContent = data.message || 'Login failed. Please check your username and password.';
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        errorMessage.textContent = 'Network error. Please try again.';
       }
     });
   </script>
