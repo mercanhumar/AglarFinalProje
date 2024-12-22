@@ -18,6 +18,7 @@
     "express-rate-limit": "^7.4.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.4",
+    "side-channel": "^1.1.0",
     "socket.io": "^4.8.1",
     "uuid": "^11.0.1"
   },
