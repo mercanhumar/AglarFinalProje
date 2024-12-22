@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Real-Time Chat + Voice Call</title>
+  <style>
+    /* ===========================
+       Base / Global styles
+       =========================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background-color: #f0f2f5;
+      color: #333;
+    }
+
+    /* ===========================
+       Container Layout
+       =========================== */
+    .chat-container {
+      display: flex;
+      max-width: 1200px;
+      height: 100vh;
+      margin: auto;
+      padding: 20px;
+    }
+    .sidebar {
+      width: 300px;
+      background: white;
+      border-radius: 10px;
+      margin-right: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-main {
+      flex: 1;
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      position: relative; /* needed for call popups if we want them anchored */
+    }
+
+    /* ===========================
+       Sidebar: user profile / search / user list
+       =========================== */
+    .user-profile  {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .user-profile h3 {
+      color: #1a1a1a;
+      margin-bottom: 5px;
+    }
+    .user-profile p {
+      color: #65676b;
+      font-size: 14px;
+    }
+    .search-container {
+      padding: 10px 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    #search-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    .search-results {
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .search-item {
+      padding: 10px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+    }
+    .search-item:hover {
+      background-color: #f0f2f5;
+    }
+    .online-users {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .user-item {
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .user-item:hover {
+      background-color: #f0f2f5;
+    }
+    .user-item.active {
+      background-color: #e7f3ff;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: rgb(142, 98, 230);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    .user-status {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-left: auto;
+    }
+    .user-status.online {
+      background-color: #31a24c;
+    }
+    .user-status.offline {
+      background-color: #65676b;
+    }
+    .notification-badge {
+      background-color: #ff4444;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* ===========================
+       Chat area: header, messages, input
+       =========================== */
+    .chat-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chat-header h3 {
+      color: #1a1a1a;
+    }
+    #call-icon {
+      border-radius: 25%;
+      background: rgb(165, 255, 165);
+      font-size: 20px;
+      cursor: pointer;
+      border: none;
+      padding: 10px;
+    }
+    #call-icon:hover {
+      background: #00ff0d;
+    }
+
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 70%;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 15px;
+      position: relative;
+    }
+    .message.sent {
+      background-color: #ff2fa8;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 5px;
+    }
+    .message.received {
+      background-color: #ba02f1;
+      color: #1a1a1a;
+      align-self: flex-start;
+      border-bottom-left-radius: 5px;
+    }
+    .message-time {
+      font-size: 12px;
+      color: #65676b;
+      margin-top: 5px;
+    }
+    .message.sent .message-time {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .input-container {
+      padding: 20px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .message-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      outline: none;
+      font-size: 15px;
+    }
+    .message-input:focus {
+      border-color: #1877f2;
+    }
+    .send-button {
+      background-color: rgb(142, 98, 230);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .send-button:hover {
+      background-color: #0073e6;
+    }
+    .no-chat-selected {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #65676b;
+    }
+    .no-chat-selected h3 {
+      margin-bottom: 10px;
+    }
+    .system-message {
+      text-align: center;
+      margin: 10px 0;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .error-message {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+    }
+
+    /* ===========================
+       Typing Indicator
+       =========================== */
+    .typing-indicator {
+      color: #65676b;
+      font-size: 12px;
+      padding: 5px 15px;
+      font-style: italic;
+      display: none;
+    }
+    .typing-indicator.active {
+      display: block;
+    }
+    .typing-dots {
+      display: inline-block;
+    }
+    .typing-dots::after {
+      content: '...';
+      animation: typing 1.5s infinite;
+    }
+    @keyframes typing {
+      0% { content: '.'; }
+      33% { content: '..'; }
+      66% { content: '...'; }
+    }
+
+    /* ===========================
+       Call Popups (Caller & Incoming)
+       =========================== */
+    #callerCallPopup,
+    #incomingCallPopup,
+    #inCallInfo {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      color: #333;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      z-index: 10000; /* ensure on top of everything */
+      text-align: center;
+      width: 250px;
+    }
+    #callerCallPopup h2,
+    #incomingCallPopup h2,
+    #inCallInfo h2 {
+      margin-bottom: 10px;
+    }
+    #callerCallPopup button,
+    #incomingCallPopup button,
+    #inCallInfo button {
+      background: #ff5c5c;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.3s;
+    }
+    #incomingCallPopup #acceptCallButton {
+      background: #4CAF50;
+    }
+    #incomingCallPopup #acceptCallButton:hover {
+      background: #3d8b40;
+    }
+    #incomingCallPopup #declineCallButton:hover,
+    #callerCallPopup button:hover,
+    #inCallInfo button:hover {
+      background: #e04e4e;
+    }
+    #inCallInfo {
+      width: 300px;
+      background: #2c2f33;
+      color: #fff;
+    }
+    #inCallInfo div {
+      margin-bottom: 20px;
+      font-size: 1.1em;
+    }
+    #callTimer {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="user-profile">
+        <h3 id="current-user">Loading...</h3>
+        <p id="user-email">Loading...</p>
+      </div>
+      <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search for users..." autocomplete="off" />
+        <div id="search-results" class="search-results"></div>
+      </div>
+      <div class="online-users" id="users-list"></div>
+    </div>
+
+    <!-- MAIN CHAT AREA -->
+    <div class="chat-main">
+      <div id="no-chat" class="no-chat-selected">
+        <h3>Welcome to Real-Time Chat</h3>
+        <p>Select a user to start chatting</p>
+      </div>
+
+      <div id="chat-area" style="display: none; height: 100%; flex-direction: column;">
+        <div class="chat-header">
+          <h3 id="chat-recipient">Chat</h3>
+          <!-- Call button -->
+          <button id="call-icon" title="Start Voice Call">✆</button>
+        </div>
+
+        <div class="messages-container" id="messages-container"></div>
+
+        <!-- Typing indicator -->
+        <div id="typing-indicator" class="typing-indicator">
+          <span id="typing-username"></span> is typing<span class="typing-dots"></span>
+        </div>
+
+        <div class="input-container">
+          <input type="text" class="message-input" id="message-input" placeholder="Type a message...">
+          <button class="send-button" id="send-button">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Caller popup -->
+  <div id="callerCallPopup">
+    <h2 id="callerNameDisplay">Calling...</h2>
+    <p id="callerStatusText">Ringing...</p>
+    <button id="cancelCallerButton">Cancel</button>
+  </div>
+
+  <!-- Incoming Call Popup -->
+  <div id="incomingCallPopup">
+    <h2 id="incomingCallerName">Incoming call from ???</h2>
+    <p>Ringing...</p>
+    <div style="margin-top: 20px;">
+      <button id="acceptCallButton">Accept</button>
+      <button id="declineCallButton">Decline</button>
+    </div>
+  </div>
+
+  <!-- In-Call Info -->
+  <div id="inCallInfo">
+    <div>In call with <span id="inCallWithName"></span> - <span id="callTimer">00:00</span></div>
+    <button id="endCallButtonInCall">End Call</button>
+  </div>
+
+  <!-- Socket.IO client -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    /********************************************************************
+     * CLIENT-SIDE MAIN LOGIC:
+     *   - JWT / localStorage checks
+     *   - Chat (via Socket.IO)
+     *   - Voice call integration
+     ********************************************************************/
+
+    /* ==============================
+       1. AUTH / STORAGE CHECK
+       ============================== */
+    const token = localStorage.getItem('token');
+    const currentUserId = localStorage.getItem('userId'); // the UUID
+    const currentUsername = localStorage.getItem('username');
+    const currentEmail = localStorage.getItem('email');
+
+    if (!token || !currentUserId || !currentUsername) {
+      window.location.href = '/login.html';
+    }
+
+    document.getElementById('current-user').textContent = currentUsername;
+    document.getElementById('user-email').textContent = currentEmail || '';
+
+    /* ==============================
+       2. CONNECT Socket.IO
+       ============================== */
+    const socket = io('http://localhost:3000', {
+      auth: { token },
+    });
+
+    /* ==============================
+       3. Chat Logic
+       ============================== */
+    let selectedUser = null;
+    const users = new Map();
+    const displayedMessages = new Set();
+    const messagesContainer = document.getElementById('messages-container');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const usersList = document.getElementById('users-list');
+    const chatArea = document.getElementById('chat-area');
+    const noChat = document.getElementById('no-chat');
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+
+    // For unread messages
+    const unreadMessages = new Map();
+
+    // For typing indicator
+    let typingTimeout;
+    const TYPING_TIMER_LENGTH = 3000;
+
+    /* Socket events */
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+    socket.on('connect_error', (err) => {
+      if (err.message === 'Authentication error') {
+        localStorage.clear();
+        window.location.href = '/login.html';
+      }
+    });
+
+    // List of online users
+    socket.on('users_list', (userList) => {
+      users.clear();
+      userList.forEach((u) => {
+        if (u.userId !== currentUserId) {
+          users.set(u.userId, u);
+        }
+      });
+      updateUsersList();
+    });
+
+    // Chat history or single message
+    socket.on('receive_message', (messageOrArray) => {
+      if (Array.isArray(messageOrArray)) {
+        // Chat history
+        messageOrArray.forEach((msg) => displayMessage(msg));
+      } else {
+        // Single new message
+        const message = messageOrArray;
+        console.log('Received message:', message);
+
+        const isRelevant =
+          (message.senderId === selectedUser?.userId && message.recipientId === currentUserId) ||
+          (message.senderId === currentUserId && message.recipientId === selectedUser?.userId);
+
+        if (isRelevant) {
+          displayMessage(message);
+        } else if (message.senderId !== currentUserId) {
+          // Notification for a different user
+          const sender = users.get(message.senderId);
+          if (sender) {
+            const count = (unreadMessages.get(message.senderId) || 0) + 1;
+            unreadMessages.set(message.senderId, count);
+            updateUsersList();
+          }
+        }
+      }
+    });
+
+    socket.on('message_status', ({ messageId, status }) => {
+      const msgEl = document.getElementById(`message-${messageId}`);
+      if (msgEl) {
+        const timeEl = msgEl.querySelector('.message-time');
+        if (timeEl) {
+          // Just to keep it simple, we show the current time + status
+          timeEl.textContent = `${new Date().toLocaleTimeString()} · ${status}`;
+        }
+      }
+    });
+
+    socket.on('error', (error) => {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message system-message';
+      errorDiv.textContent = error.message;
+      messagesContainer.appendChild(errorDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      setTimeout(() => {
+        if (errorDiv.parentNode) {
+          errorDiv.parentNode.removeChild(errorDiv);
+        }
+      }, 5000);
+    });
+
+    // Typing events
+    socket.on('user_typing', (data) => {
+      if (selectedUser && data.userId === selectedUser.userId) {
+        const typingIndicator = document.getElementById('typing-indicator');
+        const typingUsername = document.getElementById('typing-username');
+        const u = users.get(data.userId);
+        typingUsername.textContent = u?.username || 'Someone';
+        typingIndicator.classList.add('active');
+      }
+    });
+    socket.on('user_stop_typing', (data) => {
+      if (selectedUser && data.userId === selectedUser.userId) {
+        const typingIndicator = document.getElementById('typing-indicator');
+        typingIndicator.classList.remove('active');
+      }
+    });
+
+    /* ==============================
+       4. Send message
+       ============================== */
+    function sendMessage() {
+      const content = messageInput.value.trim();
+      if (!content || !selectedUser) return;
+      socket.emit('send_message', {
+        recipientId: selectedUser.userId,
+        content,
+      });
+      messageInput.value = '';
+    }
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    messageInput.addEventListener('input', () => {
+      if (selectedUser) {
+        clearTimeout(typingTimeout);
+        socket.emit('typing', {
+          recipientId: selectedUser.userId,
+        });
+        typingTimeout = setTimeout(() => {
+          socket.emit('stop_typing', {
+            recipientId: selectedUser.userId,
+          });
+        }, TYPING_TIMER_LENGTH);
+      }
+    });
+
+    /* ==============================
+       5. Display messages
+       ============================== */
+    function displayMessage(message) {
+      if (displayedMessages.has(message._id)) return;
+      displayedMessages.add(message._id);
+
+      const messageElement = document.createElement('div');
+      const isSent = message.senderId === currentUserId;
+      messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
+      messageElement.id = `message-${message._id}`;
+
+      const timeString = new Date(message.timestamp).toLocaleTimeString();
+      const status = message.status || 'sent';
+
+      messageElement.innerHTML = `
+        <div class="message-content">${message.content}</div>
+        <div class="message-time">
+          ${timeString} · ${status}
+        </div>
+      `;
+      messagesContainer.appendChild(messageElement);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    /* ==============================
+       6. Update users list
+       ============================== */
+    function updateUsersList() {
+      usersList.innerHTML = '';
+      users.forEach((u) => {
+        const userElement = document.createElement('div');
+        userElement.className = `user-item ${selectedUser?.userId === u.userId ? 'active' : ''}`;
+        userElement.innerHTML = `
+          <div class="user-avatar">
+            ${u.username.charAt(0).toUpperCase()}
+          </div>
+          <div class="user-info">
+            <div class="user-name">${u.username}</div>
+          </div>
+          <div class="user-status ${u.online ? 'online' : 'offline'}"></div>
+        `;
+        userElement.addEventListener('click', () => selectUser(u));
+        usersList.appendChild(userElement);
+      });
+    }
+
+    // Selecting a user triggers load of chat history
+    function selectUser(u) {
+      selectedUser = u;
+      updateUsersList();
+
+      chatArea.style.display = 'flex';
+      noChat.style.display = 'none';
+
+      document.getElementById('chat-recipient').textContent = u.username;
+      messagesContainer.innerHTML = '';
+      displayedMessages.clear();
+
+      socket.emit('get_chat_history', { userId: u.userId });
+      unreadMessages.delete(u.userId);
+
+      const typingIndicator = document.getElementById('typing-indicator');
+      typingIndicator.classList.remove('active');
+    }
+
+    /* ==============================
+       7. Live user search
+       ============================== */
+    searchInput.addEventListener('input', async () => {
+      const query = searchInput.value.trim();
+      if (query.length < 3) {
+        searchResults.innerHTML = '';
+        return;
+      }
+      try {
+        const response = await fetch(`/api/auth/search?username=${query}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const usersFound = await response.json();
+        searchResults.innerHTML = usersFound
+          .map(
+            (user) => `
+            <div class="search-item" data-user-id="${user.userId}">
+              ${user.username}
+            </div>
+          `
+          )
+          .join('');
+        document.querySelectorAll('.search-item').forEach((item) => {
+          item.addEventListener('click', () => {
+            const userId = item.getAttribute('data-user-id');
+            const userName = item.textContent;
+            selectUserFromSearch(userId, userName);
+          });
+        });
+      } catch (error) {
+        console.error('Search error:', error);
+      }
+    });
+
+    function selectUserFromSearch(userId, username) {
+      const user = { userId, username };
+      selectUser(user);
+      searchResults.innerHTML = '';
+      searchInput.value = '';
+    }
+
+    // Request initial user list once connected
+    socket.emit('get_users');
+
+    // Notifications
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    /********************************************************************
+     * VOICE CALL SECTION
+     ********************************************************************/
+    let localStream = null;
+    let remoteStream = null;
+    let peerConnection = null;
+    let receivedOffer = null;
+    let currentCallUser = null; // The user we are calling or who is calling us
+    let callInterval = null;
+    let callStartTime = 0;
+
+    const callerPopup = document.getElementById('callerCallPopup');
+    const callerNameDisplay = document.getElementById('callerNameDisplay');
+    const callerStatusText = document.getElementById('callerStatusText');
+    const cancelCallerButton = document.getElementById('cancelCallerButton');
+
+    const incomingCallPopup = document.getElementById('incomingCallPopup');
+    const incomingCallerName = document.getElementById('incomingCallerName');
+    const acceptCallButton = document.getElementById('acceptCallButton');
+    const declineCallButton = document.getElementById('declineCallButton');
+
+    const inCallInfo = document.getElementById('inCallInfo');
+    const inCallWithName = document.getElementById('inCallWithName');
+    const callTimer = document.getElementById('callTimer');
+    const endCallButtonInCall = document.getElementById('endCallButtonInCall');
+
+    const callIcon = document.getElementById('call-icon');
+    callIcon.addEventListener('click', startCall);
+
+    // ICE servers config: fill in your own STUN/TURN if you have them
+    const servers = {
+      iceServers: [
+        { urls: 'stun:192.168.16.1`:19302' },
+     
+        {
+          urls: 'turn:192.168.16.1:3478?transport=udp',
+          username: 'mercanhumar',
+           credential: 'Coral_2121'
+        }
+      ]
+    };
+
+    /********************************
+     *  Socket events for calls
+     ********************************/
+    socket.on('incomingCall', ({ from }) => {
+      currentCallUser = from;
+      incomingCallerName.textContent = 'Incoming call from ' + from;
+      incomingCallPopup.style.display = 'block';
+    });
+    socket.on('callAccepted', () => {
+      // Hide caller popup
+      callerPopup.style.display = 'none';
+      inCallWithName.textContent = selectedUser?.username || currentCallUser || '...';
+      inCallInfo.style.display = 'block';
+      startCallTimer();
+    });
+    socket.on('callDeclined', () => {
+      alert('The user declined your call.');
+      callerPopup.style.display = 'none';
+      endCall();
+    });
+    socket.on('callEnded', () => {
+      endCall();
+    });
+    socket.on('offer', (description) => {
+      receivedOffer = description;
+    });
+    socket.on('answer', (description) => {
+      if (peerConnection) {
+        peerConnection.setRemoteDescription(new RTCSessionDescription(description));
+      }
+    });
+    socket.on('iceCandidate', (candidate) => {
+      if (peerConnection) {
+        peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
+          .catch(error => console.error('Error adding ICE candidate:', error));
+      }
+    });
+
+    cancelCallerButton.addEventListener('click', () => {
+      if (currentCallUser) {
+        socket.emit('callEnded', { from: currentUsername, to: currentCallUser });
+      }
+      endCall();
+    });
+    acceptCallButton.addEventListener('click', handleAcceptCall);
+    declineCallButton.addEventListener('click', handleDeclineCall);
+    endCallButtonInCall.addEventListener('click', () => {
+      if (currentCallUser) {
+        socket.emit('callEnded', { from: currentUsername, to: currentCallUser });
+      }
+      endCall();
+    });
+
+    /********************************
+     *  Call Timer
+     ********************************/
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+    function startCallTimer() {
+      callStartTime = Math.floor(Date.now() / 1000);
+      callInterval = setInterval(() => {
+        const now = Math.floor(Date.now() / 1000);
+        const elapsed = now - callStartTime;
+        callTimer.textContent = formatTime(elapsed);
+      }, 1000);
+    }
+    function stopCallTimer() {
+      clearInterval(callInterval);
+      callTimer.textContent = '00:00';
+    }
+
+    /********************************
+     *  Starting a Call
+     ********************************/
+    function startCall() {
+      if (!selectedUser) {
+        alert('No user selected to call.');
+        return;
+      }
+      currentCallUser = selectedUser.username;
+      callerPopup.style.display = 'block';
+      callerNameDisplay.textContent = 'Calling ' + currentCallUser;
+      callerStatusText.textContent = 'Ringing...';
+
+      socket.emit('callInitiated', { from: currentUsername, to: currentCallUser });
+
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          localStream = stream;
+          peerConnection = new RTCPeerConnection(servers);
+          peerConnection.addStream(localStream);
+
+          peerConnection.onaddstream = event => {
+            remoteStream = event.stream;
+            const audioElement = document.createElement('audio');
+            audioElement.srcObject = remoteStream;
+            audioElement.autoplay = true;
+            document.body.appendChild(audioElement);
+          };
+
+          peerConnection.onicecandidate = event => {
+            if (event.candidate && currentCallUser) {
+              socket.emit('iceCandidate', { to: currentCallUser, candidate: event.candidate });
+            }
+          };
+
+          return peerConnection.createOffer();
+        })
+        .then(offer => peerConnection.setLocalDescription(offer))
+        .then(() => {
+          if (currentCallUser) {
+            socket.emit('offer', { to: currentCallUser, description: peerConnection.localDescription });
+          }
+        })
+        .catch(error => {
+          console.error('Error accessing media devices:', error);
+          callerPopup.style.display = 'none';
+        });
+    }
+
+    /********************************
+     *  Accepting a Call
+     ********************************/
+    function handleAcceptCall() {
+      if (!currentCallUser) return;
+      socket.emit('callAccepted', { from: currentUsername, to: currentCallUser });
+      incomingCallPopup.style.display = 'none';
+
+      if (receivedOffer) {
+        if (!peerConnection) {
+          peerConnection = new RTCPeerConnection(servers);
+          peerConnectionSetup();
+        }
+
+        // Set remote description from the incoming offer
+        peerConnection.setRemoteDescription(new RTCSessionDescription(receivedOffer))
+          .then(() => navigator.mediaDevices.getUserMedia({ audio: true }))
+          .then(stream => {
+            localStream = stream;
+            peerConnection.addStream(localStream);
+            return peerConnection.createAnswer();
+          })
+          .then(answer => peerConnection.setLocalDescription(answer))
+          .then(() => socket.emit('answer', { to: currentCallUser, description: peerConnection.localDescription }))
+          .catch(error => console.error('Error handling offer:', error));
+
+        inCallWithName.textContent = currentCallUser || '...';
+        inCallInfo.style.display = 'block';
+        startCallTimer();
+      }
+    }
+
+    function peerConnectionSetup() {
+      peerConnection.onicecandidate = event => {
+        if (event.candidate && currentCallUser) {
+          socket.emit('iceCandidate', { to: currentCallUser, candidate: event.candidate });
+        }
+      };
+      peerConnection.onaddstream = event => {
+        remoteStream = event.stream;
+        const audioElement = document.createElement('audio');
+        audioElement.srcObject = remoteStream;
+        audioElement.autoplay = true;
+        document.body.appendChild(audioElement);
+      };
+    }
+
+    /********************************
+     *  Declining a Call
+     ********************************/
+    function handleDeclineCall() {
+      if (currentCallUser) {
+        socket.emit('callDeclined', { from: currentUsername, to: currentCallUser });
+      }
+      incomingCallPopup.style.display = 'none';
+    }
+
+    /********************************
+     *  Ending a Call
+     ********************************/
+    function endCall() {
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+      }
+      callerPopup.style.display = 'none';
+      incomingCallPopup.style.display = 'none';
+      inCallInfo.style.display = 'none';
+      stopCallTimer();
+      currentCallUser = null;
+      receivedOffer = null;
+    }
+  </script>
+</body>
+</html>
