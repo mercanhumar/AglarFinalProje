@@ -12,8 +12,12 @@ function authenticateToken(req, res, next) {
     if (err) {
       return res.status(403).json({ message: 'Invalid token' });
     }
+<<<<<<< HEAD
     // user = { id: <MongoDB _id> }
     req.user = user;
+=======
+    req.user = user; // user = { id: user._id }
+>>>>>>> e91bd7a65d8e5b4b40f149b4b7d93d2a32d45338
     next();
   });
 }
