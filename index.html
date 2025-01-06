@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Real-Time Chat + Voice Call</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>My Chat</title>
   <style>
-    /* ===========================
-       Base / Global styles
-       =========================== */
     * {
       margin: 0;
       padding: 0;
@@ -15,934 +13,686 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     body {
-      background-color: #f0f2f5;
+      background-color: #fff0f5;
       color: #333;
     }
-
-    /* ===========================
-       Container Layout
-       =========================== */
-    .chat-container {
-      display: flex;
-      max-width: 1200px;
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
       height: 100vh;
-      margin: auto;
-      padding: 20px;
-    }
-    .sidebar {
-      width: 300px;
-      background: white;
-      border-radius: 10px;
-      margin-right: 20px;
       display: flex;
       flex-direction: column;
     }
-    .chat-main {
-      flex: 1;
-      background: white;
-      border-radius: 10px;
+    .top-bar {
+      background: linear-gradient(90deg, #ffd1e0 0%, #c2a2df 100%);
+      color: #fff;
+      padding: 15px 20px;
       display: flex;
-      flex-direction: column;
-      position: relative; /* needed for call popups if we want them anchored */
-    }
-
-    /* ===========================
-       Sidebar: user profile / search / user list
-       =========================== */
-    .user-profile  {
-      padding: 20px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .user-profile h3 {
-      color: #1a1a1a;
-      margin-bottom: 5px;
-    }
-    .user-profile p {
-      color: #65676b;
-      font-size: 14px;
-    }
-    .search-container {
-      padding: 10px 20px;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    #search-input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-    .search-results {
-      max-height: 150px;
-      overflow-y: auto;
-      margin-top: 10px;
-    }
-    .search-item {
-      padding: 10px;
-      border-bottom: 1px solid #f0f0f0;
-      cursor: pointer;
-    }
-    .search-item:hover {
-      background-color: #f0f2f5;
-    }
-    .online-users {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px;
-    }
-    .user-item {
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
-    .user-item:hover {
-      background-color: #f0f2f5;
-    }
-    .user-item.active {
-      background-color: #e7f3ff;
-    }
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background-color: rgb(142, 98, 230);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 10px;
-      font-weight: bold;
-    }
-    .user-status {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-left: auto;
-    }
-    .user-status.online {
-      background-color: #31a24c;
-    }
-    .user-status.offline {
-      background-color: #65676b;
-    }
-    .notification-badge {
-      background-color: #ff4444;
-      color: white;
-      border-radius: 50%;
-      padding: 2px 6px;
-      font-size: 12px;
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    /* ===========================
-       Chat area: header, messages, input
-       =========================== */
-    .chat-header {
-      padding: 20px;
-      border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
     }
-    .chat-header h3 {
-      color: #1a1a1a;
-    }
-    #call-icon {
-      border-radius: 25%;
-      background: rgb(165, 255, 165);
-      font-size: 20px;
-      cursor: pointer;
-      border: none;
-      padding: 10px;
-    }
-    #call-icon:hover {
-      background: #00ff0d;
-    }
-
-    .messages-container {
+    .content {
       flex: 1;
-      overflow-y: auto;
-      padding: 20px;
+      display: flex;
+      background: #fff;
+    }
+    .left-side {
+      width: 300px;
+      border-right: 1px solid #ecc8e8;
       display: flex;
       flex-direction: column;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ecc8e8;
+    }
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      color: #999;
+      background: #fae3f2;
+    }
+    .tab.active {
+      background: #fff;
+      color: #ec407a;
+      border-bottom: 2px solid #ec407a;
+    }
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     .message {
       max-width: 70%;
-      margin: 5px 0;
-      padding: 10px;
+      padding: 10px 15px;
       border-radius: 15px;
       position: relative;
     }
-    .message.sent {
-      background-color: #ff2fa8;
-      color: white;
+    .sent {
       align-self: flex-end;
-      border-bottom-right-radius: 5px;
+      background: linear-gradient(90deg, #ffd1e0 0%, #c2a2df 100%);
+      color: white;
+      border-bottom-right-radius: 2px;
     }
-    .message.received {
-      background-color: #ba02f1;
-      color: #1a1a1a;
+    .received {
       align-self: flex-start;
-      border-bottom-left-radius: 5px;
+      background: #fff;
+      border: 1px solid #ecc8e8;
+      border-bottom-left-radius: 2px;
     }
     .message-time {
       font-size: 12px;
-      color: #65676b;
+      color: #999;
       margin-top: 5px;
     }
-    .message.sent .message-time {
-      color: rgba(255, 255, 255, 0.7);
-    }
-
     .input-container {
-      padding: 20px;
-      border-top: 1px solid #e0e0e0;
+      background: #fae3f2;
+      padding: 10px;
       display: flex;
       align-items: center;
       gap: 10px;
+      border-top: 1px solid #e9cce9;
     }
     .message-input {
       flex: 1;
-      padding: 12px;
-      border: 1px solid #e0e0e0;
-      border-radius: 20px;
+      border: 1px solid #ecc8e8;
       outline: none;
-      font-size: 15px;
-    }
-    .message-input:focus {
-      border-color: #1877f2;
-    }
-    .send-button {
-      background-color: rgb(142, 98, 230);
-      color: white;
-      border: none;
-      padding: 12px 20px;
+      padding: 10px;
       border-radius: 20px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .send-button:hover {
-      background-color: #0073e6;
-    }
-    .no-chat-selected {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: #65676b;
-    }
-    .no-chat-selected h3 {
-      margin-bottom: 10px;
-    }
-    .system-message {
-      text-align: center;
-      margin: 10px 0;
-      padding: 8px;
-      border-radius: 8px;
       font-size: 14px;
     }
-    .error-message {
-      background-color: #ffebee;
-      color: #c62828;
-      border: 1px solid #ffcdd2;
-    }
-
-    /* ===========================
-       Typing Indicator
-       =========================== */
-    .typing-indicator {
-      color: #65676b;
-      font-size: 12px;
-      padding: 5px 15px;
-      font-style: italic;
-      display: none;
-    }
-    .typing-indicator.active {
-      display: block;
-    }
-    .typing-dots {
-      display: inline-block;
-    }
-    .typing-dots::after {
-      content: '...';
-      animation: typing 1.5s infinite;
-    }
-    @keyframes typing {
-      0% { content: '.'; }
-      33% { content: '..'; }
-      66% { content: '...'; }
-    }
-
-    /* ===========================
-       Call Popups (Caller & Incoming)
-       =========================== */
-    #callerCallPopup,
-    #incomingCallPopup,
-    #inCallInfo {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      color: #333;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      z-index: 10000; /* ensure on top of everything */
-      text-align: center;
-      width: 250px;
-    }
-    #callerCallPopup h2,
-    #incomingCallPopup h2,
-    #inCallInfo h2 {
-      margin-bottom: 10px;
-    }
-    #callerCallPopup button,
-    #incomingCallPopup button,
-    #inCallInfo button {
-      background: #ff5c5c;
+    .send-button {
+      background: #ec407a;
       color: #fff;
       border: none;
-      border-radius: 5px;
-      padding: 10px 15px;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-weight: bold;
       cursor: pointer;
-      font-size: 1em;
       transition: background 0.3s;
     }
-    #incomingCallPopup #acceptCallButton {
-      background: #4CAF50;
+    .send-button:hover {
+      background: #e91e63;
     }
-    #incomingCallPopup #acceptCallButton:hover {
-      background: #3d8b40;
+    .call-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(90deg, #ffd1e0 0%, #c2a2df 100%);
+      padding: 10px;
+      border-radius: 8px;
+      display: none;
     }
-    #incomingCallPopup #declineCallButton:hover,
-    #callerCallPopup button:hover,
-    #inCallInfo button:hover {
-      background: #e04e4e;
+    .call-controls.show {
+      display: block;
     }
-    #inCallInfo {
-      width: 300px;
-      background: #2c2f33;
-      color: #fff;
+    .call-button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 5px 10px;
+      margin: 0 5px;
     }
-    #inCallInfo div {
-      margin-bottom: 20px;
-      font-size: 1.1em;
+    .call-button:hover {
+      opacity: 0.8;
     }
-    #callTimer {
+    .call-timer {
+      color: white;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal-backdrop.show {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      width: 340px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      font-size: 16px;
       font-weight: bold;
+      margin-bottom: 15px;
+      color: #6e316e;
+    }
+    .modal-body {
+      margin-bottom: 15px;
+    }
+    .modal-body input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      outline: none;
+    }
+    .modal-footer {
+      text-align: right;
+    }
+    .btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+    .cancel-button {
+      background: #f0f0f0;
+      color: #666;
+    }
+    .save-button {
+      background: linear-gradient(90deg, #ffd1e0 0%, #c2a2df 100%);
+      color: white;
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-      <div class="user-profile">
-        <h3 id="current-user">Loading...</h3>
-        <p id="user-email">Loading...</p>
+  <div class="container">
+    <div class="top-bar">
+      <h1>My Chat</h1>
+      <div class="user-info">
+        <span id="username"></span>
+        <button id="logoutBtn" onclick="logout()">Logout</button>
       </div>
-      <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search for users..." autocomplete="off" />
-        <div id="search-results" class="search-results"></div>
-      </div>
-      <div class="online-users" id="users-list"></div>
     </div>
 
-    <!-- MAIN CHAT AREA -->
-    <div class="chat-main">
-      <div id="no-chat" class="no-chat-selected">
-        <h3>Welcome to Real-Time Chat</h3>
-        <p>Select a user to start chatting</p>
+    <div class="content">
+      <div class="left-side">
+        <div class="tabs">
+          <div class="tab active" data-tab="chats">Chats</div>
+          <div class="tab" data-tab="contacts">Contacts</div>
+        </div>
+        <div class="tab-content" id="chats-content">
+          <div class="users-list"></div>
+        </div>
+        <div class="tab-content" id="contacts-content" style="display: none;">
+          <div class="contacts-list"></div>
+          <button id="openAddContactBtn" class="btn save-button" style="margin: 10px;">Add Contact</button>
+        </div>
       </div>
 
-      <div id="chat-area" style="display: none; height: 100%; flex-direction: column;">
-        <div class="chat-header">
-          <h3 id="chat-recipient">Chat</h3>
-          <!-- Call button -->
-          <button id="call-icon" title="Start Voice Call">✆</button>
-        </div>
-
-        <div class="messages-container" id="messages-container"></div>
-
-        <!-- Typing indicator -->
-        <div id="typing-indicator" class="typing-indicator">
-          <span id="typing-username"></span> is typing<span class="typing-dots"></span>
-        </div>
-
+      <div class="chat-area">
+        <div class="messages"></div>
+        <div class="typing-indicator"></div>
         <div class="input-container">
-          <input type="text" class="message-input" id="message-input" placeholder="Type a message...">
-          <button class="send-button" id="send-button">Send</button>
+          <input type="text" class="message-input" placeholder="Type a message..." />
+          <button class="send-button">Send</button>
         </div>
+      </div>
+    </div>
+
+    <div class="call-controls">
+      <div class="call-timer">00:00</div>
+      <button class="call-button mute-button"><i class="fas fa-microphone"></i></button>
+      <button class="call-button end-call-button"><i class="fas fa-phone-slash"></i></button>
+    </div>
+  </div>
+
+  <!-- Add Contact Modal -->
+  <div class="modal-backdrop" id="addContactModal">
+    <div class="modal-content">
+      <div class="modal-header">Add Contact</div>
+      <div class="modal-body">
+        <input type="text" id="contactUsername" placeholder="Enter username" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn cancel-button" id="cancelAddContact">Cancel</button>
+        <button class="btn save-button" id="saveAddContact">Add</button>
       </div>
     </div>
   </div>
 
-  <!-- Caller popup -->
-  <div id="callerCallPopup">
-    <h2 id="callerNameDisplay">Calling...</h2>
-    <p id="callerStatusText">Ringing...</p>
-    <button id="cancelCallerButton">Cancel</button>
-  </div>
-
-  <!-- Incoming Call Popup -->
-  <div id="incomingCallPopup">
-    <h2 id="incomingCallerName">Incoming call from ???</h2>
-    <p>Ringing...</p>
-    <div style="margin-top: 20px;">
-      <button id="acceptCallButton">Accept</button>
-      <button id="declineCallButton">Decline</button>
+  <!-- Incoming Call Modal -->
+  <div class="modal-backdrop" id="incomingCallModal">
+    <div class="modal-content">
+      <div class="modal-header">Incoming Call</div>
+      <div class="modal-body">
+        <p>Incoming call from <span id="incomingCallerName"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn cancel-button" id="rejectCall">Reject</button>
+        <button class="btn save-button" id="acceptCall">Accept</button>
+      </div>
     </div>
   </div>
 
-  <!-- In-Call Info -->
-  <div id="inCallInfo">
-    <div>In call with <span id="inCallWithName"></span> - <span id="callTimer">00:00</span></div>
-    <button id="endCallButtonInCall">End Call</button>
-  </div>
-
-  <!-- Socket.IO client -->
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="public/js/webrtc.js"></script>
   <script>
-    /********************************************************************
-     * CLIENT-SIDE MAIN LOGIC:
-     *   - JWT / localStorage checks
-     *   - Chat (via Socket.IO)
-     *   - Voice call integration
-     ********************************************************************/
-
-    /* ==============================
-       1. AUTH / STORAGE CHECK
-       ============================== */
+    // Check authentication
     const token = localStorage.getItem('token');
-    const currentUserId = localStorage.getItem('userId'); // the UUID
-    const currentUsername = localStorage.getItem('username');
-    const currentEmail = localStorage.getItem('email');
-
-    if (!token || !currentUserId || !currentUsername) {
+    if (!token) {
       window.location.href = '/login.html';
     }
 
-    document.getElementById('current-user').textContent = currentUsername;
-    document.getElementById('user-email').textContent = currentEmail || '';
-
-    /* ==============================
-       2. CONNECT Socket.IO
-       ============================== */
-    const socket = io('http://localhost:3000', {
-      auth: { token },
+    // Initialize socket connection with token
+    const socket = io('https://localhost:3000', {
+      auth: {
+        token: token
+      }
     });
 
-    /* ==============================
-       3. Chat Logic
-       ============================== */
-    let selectedUser = null;
-    const users = new Map();
-    const displayedMessages = new Set();
-    const messagesContainer = document.getElementById('messages-container');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
-    const usersList = document.getElementById('users-list');
-    const chatArea = document.getElementById('chat-area');
-    const noChat = document.getElementById('no-chat');
-    const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
-
-    // For unread messages
-    const unreadMessages = new Map();
-
-    // For typing indicator
-    let typingTimeout;
-    const TYPING_TIMER_LENGTH = 3000;
-
-    /* Socket events */
-    socket.on('connect', () => {
-      console.log('Connected to server');
-    });
-    socket.on('connect_error', (err) => {
-      if (err.message === 'Authentication error') {
-        localStorage.clear();
+    // Handle socket connection errors
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      if (error.message === 'Authentication error') {
+        localStorage.removeItem('token');
         window.location.href = '/login.html';
       }
     });
 
-    // List of online users
-    socket.on('users_list', (userList) => {
-      users.clear();
-      userList.forEach((u) => {
-        if (u.userId !== currentUserId) {
-          users.set(u.userId, u);
-        }
-      });
-      updateUsersList();
+    // Handle socket connection
+    socket.on('connect', () => {
+      console.log('Connected to server');
+      fetchContacts(); // Fetch contacts after connection
     });
 
-    // Chat history or single message
-    socket.on('receive_message', (messageOrArray) => {
-      if (Array.isArray(messageOrArray)) {
-        // Chat history
-        messageOrArray.forEach((msg) => displayMessage(msg));
-      } else {
-        // Single new message
-        const message = messageOrArray;
-        console.log('Received message:', message);
+    // Logout function
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/login.html';
+    }
 
-        const isRelevant =
-          (message.senderId === selectedUser?.userId && message.recipientId === currentUserId) ||
-          (message.senderId === currentUserId && message.recipientId === selectedUser?.userId);
+    let selectedUser = null;
+    let currentUserId = null;
+    let typingTimeout;
+    const TYPING_TIMER_LENGTH = 400;
+    const usersMap = new Map();
 
-        if (isRelevant) {
-          displayMessage(message);
-        } else if (message.senderId !== currentUserId) {
-          // Notification for a different user
-          const sender = users.get(message.senderId);
-          if (sender) {
-            const count = (unreadMessages.get(message.senderId) || 0) + 1;
-            unreadMessages.set(message.senderId, count);
-            updateUsersList();
-          }
-        }
-      }
-    });
-
-    socket.on('message_status', ({ messageId, status }) => {
-      const msgEl = document.getElementById(`message-${messageId}`);
-      if (msgEl) {
-        const timeEl = msgEl.querySelector('.message-time');
-        if (timeEl) {
-          // Just to keep it simple, we show the current time + status
-          timeEl.textContent = `${new Date().toLocaleTimeString()} · ${status}`;
-        }
-      }
+    // Socket event handlers
+    socket.on('connect', () => {
+      console.log('Connected to server');
+      socket.emit('get_users');
     });
 
     socket.on('error', (error) => {
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message system-message';
-      errorDiv.textContent = error.message;
-      messagesContainer.appendChild(errorDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      setTimeout(() => {
-        if (errorDiv.parentNode) {
-          errorDiv.parentNode.removeChild(errorDiv);
+      console.error('Socket error:', error);
+      if (error.message.includes('Authentication')) {
+        window.location.href = '/login.html';
+      }
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        const tabName = tab.dataset.tab;
+        document.getElementById('chats-content').style.display = tabName === 'chats' ? 'block' : 'none';
+        document.getElementById('contacts-content').style.display = tabName === 'contacts' ? 'block' : 'none';
+        
+        if (tabName === 'contacts') {
+          fetchContacts();
         }
-      }, 5000);
-    });
-
-    // Typing events
-    socket.on('user_typing', (data) => {
-      if (selectedUser && data.userId === selectedUser.userId) {
-        const typingIndicator = document.getElementById('typing-indicator');
-        const typingUsername = document.getElementById('typing-username');
-        const u = users.get(data.userId);
-        typingUsername.textContent = u?.username || 'Someone';
-        typingIndicator.classList.add('active');
-      }
-    });
-    socket.on('user_stop_typing', (data) => {
-      if (selectedUser && data.userId === selectedUser.userId) {
-        const typingIndicator = document.getElementById('typing-indicator');
-        typingIndicator.classList.remove('active');
-      }
-    });
-
-    /* ==============================
-       4. Send message
-       ============================== */
-    function sendMessage() {
-      const content = messageInput.value.trim();
-      if (!content || !selectedUser) return;
-      socket.emit('send_message', {
-        recipientId: selectedUser.userId,
-        content,
       });
-      messageInput.value = '';
+    });
+
+    // Contacts
+    async function fetchContacts() {
+      try {
+        const response = await fetch('/api/contacts', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch contacts');
+        }
+
+        const data = await response.json();
+        renderContactsList(data.contacts);
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
     }
+
+    function renderContactsList(contacts) {
+      const contactsList = document.querySelector('.contacts-list');
+      contactsList.innerHTML = '';
+      contacts.forEach(contact => {
+        const contactDiv = document.createElement('div');
+        contactDiv.className = 'user-item contact-item';
+        contactDiv.innerHTML = `
+          <span>${contact.username}</span>
+          <div>
+            <button class="btn" onclick="openContactChat('${contact._id}')">Chat</button>
+            <button class="btn cancel-button" onclick="removeContact('${contact._id}')">Remove</button>
+          </div>
+        `;
+        contactsList.appendChild(contactDiv);
+      });
+    }
+
+    function openContactChat(contactId) {
+      const contact = usersMap.get(contactId);
+      if (contact) {
+        selectUser(contact);
+        document.querySelector('[data-tab="chats"]').click();
+      }
+    }
+
+    async function removeContact(contactId) {
+      try {
+        const response = await fetch(`/api/contacts/${contactId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to remove contact');
+        }
+
+        fetchContacts();
+      } catch (error) {
+        console.error('Error removing contact:', error);
+      }
+    }
+
+    // Add Contact Modal
+    const addContactModal = document.getElementById('addContactModal');
+    const openAddContactBtn = document.getElementById('openAddContactBtn');
+    const cancelAddContactBtn = document.getElementById('cancelAddContact');
+    const saveAddContactBtn = document.getElementById('saveAddContact');
+    const contactUsernameInput = document.getElementById('contactUsername');
+
+    openAddContactBtn.addEventListener('click', () => {
+      addContactModal.classList.add('show');
+    });
+
+    cancelAddContactBtn.addEventListener('click', () => {
+      addContactModal.classList.remove('show');
+      contactUsernameInput.value = '';
+    });
+
+    saveAddContactBtn.addEventListener('click', async () => {
+      const username = contactUsernameInput.value.trim();
+      if (username) {
+        try {
+          const response = await fetch('/api/contacts', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to add contact');
+          }
+
+          addContactModal.classList.remove('show');
+          contactUsernameInput.value = '';
+          fetchContacts();
+        } catch (error) {
+          console.error('Error adding contact:', error);
+        }
+      }
+    });
+
+    // Chat functionality
+    socket.on('users_list', (users) => {
+      console.log('Received users list:', users);
+      usersMap.clear();
+      users.forEach(user => {
+        if (user.userId !== currentUserId) {
+          usersMap.set(user.userId, user);
+        }
+      });
+      renderUsersList();
+    });
+
+    function renderUsersList() {
+      const usersList = document.querySelector('.users-list');
+      usersList.innerHTML = '';
+      usersMap.forEach(user => {
+        const userDiv = document.createElement('div');
+        userDiv.className = `user-item ${selectedUser?.userId === user.userId ? 'active' : ''}`;
+        userDiv.innerHTML = `
+          <span>${user.username}</span>
+          <div class="user-actions">
+            <button class="btn" onclick="initiateCall('${user.userId}')">
+              <i class="fas fa-phone"></i>
+            </button>
+          </div>
+        `;
+        userDiv.addEventListener('click', () => selectUser(user));
+        usersList.appendChild(userDiv);
+      });
+    }
+
+    function selectUser(user) {
+      selectedUser = user;
+      renderUsersList();
+      document.querySelector('.messages').innerHTML = '';
+      socket.emit('get_chat_history', { userId: user.userId });
+    }
+
+    // Messaging
+    const messageInput = document.querySelector('.message-input');
+    const sendButton = document.querySelector('.send-button');
+    const typingIndicator = document.querySelector('.typing-indicator');
+
     sendButton.addEventListener('click', sendMessage);
     messageInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage();
-      }
-    });
-    messageInput.addEventListener('input', () => {
-      if (selectedUser) {
-        clearTimeout(typingTimeout);
-        socket.emit('typing', {
-          recipientId: selectedUser.userId,
-        });
-        typingTimeout = setTimeout(() => {
-          socket.emit('stop_typing', {
-            recipientId: selectedUser.userId,
-          });
-        }, TYPING_TIMER_LENGTH);
-      }
+      if (e.key === 'Enter') sendMessage();
     });
 
-    /* ==============================
-       5. Display messages
-       ============================== */
-    function displayMessage(message) {
-      if (displayedMessages.has(message._id)) return;
-      displayedMessages.add(message._id);
+    async function sendMessage() {
+      if (!selectedUser || !messageInput.value.trim()) return;
 
-      const messageElement = document.createElement('div');
-      const isSent = message.senderId === currentUserId;
-      messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
-      messageElement.id = `message-${message._id}`;
+      const content = messageInput.value.trim();
+      messageInput.value = '';
 
-      const timeString = new Date(message.timestamp).toLocaleTimeString();
-      const status = message.status || 'sent';
-
-      messageElement.innerHTML = `
-        <div class="message-content">${message.content}</div>
-        <div class="message-time">
-          ${timeString} · ${status}
-        </div>
-      `;
-      messagesContainer.appendChild(messageElement);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    /* ==============================
-       6. Update users list
-       ============================== */
-    function updateUsersList() {
-      usersList.innerHTML = '';
-      users.forEach((u) => {
-        const userElement = document.createElement('div');
-        userElement.className = `user-item ${selectedUser?.userId === u.userId ? 'active' : ''}`;
-        userElement.innerHTML = `
-          <div class="user-avatar">
-            ${u.username.charAt(0).toUpperCase()}
-          </div>
-          <div class="user-info">
-            <div class="user-name">${u.username}</div>
-          </div>
-          <div class="user-status ${u.online ? 'online' : 'offline'}"></div>
-        `;
-        userElement.addEventListener('click', () => selectUser(u));
-        usersList.appendChild(userElement);
-      });
-    }
-
-    // Selecting a user triggers load of chat history
-    function selectUser(u) {
-      selectedUser = u;
-      updateUsersList();
-
-      chatArea.style.display = 'flex';
-      noChat.style.display = 'none';
-
-      document.getElementById('chat-recipient').textContent = u.username;
-      messagesContainer.innerHTML = '';
-      displayedMessages.clear();
-
-      socket.emit('get_chat_history', { userId: u.userId });
-      unreadMessages.delete(u.userId);
-
-      const typingIndicator = document.getElementById('typing-indicator');
-      typingIndicator.classList.remove('active');
-    }
-
-    /* ==============================
-       7. Live user search
-       ============================== */
-    searchInput.addEventListener('input', async () => {
-      const query = searchInput.value.trim();
-      if (query.length < 3) {
-        searchResults.innerHTML = '';
-        return;
-      }
       try {
-        const response = await fetch(`/api/auth/search?username=${query}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            receiverId: selectedUser.userId,
+            content
+          })
         });
-        const usersFound = await response.json();
-        searchResults.innerHTML = usersFound
-          .map(
-            (user) => `
-            <div class="search-item" data-user-id="${user.userId}">
-              ${user.username}
-            </div>
-          `
-          )
-          .join('');
-        document.querySelectorAll('.search-item').forEach((item) => {
-          item.addEventListener('click', () => {
-            const userId = item.getAttribute('data-user-id');
-            const userName = item.textContent;
-            selectUserFromSearch(userId, userName);
-          });
+
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
+
+        socket.emit('new_message', {
+          receiverId: selectedUser.userId,
+          content
         });
       } catch (error) {
-        console.error('Search error:', error);
+        console.error('Error sending message:', error);
+      }
+    }
+
+    socket.on('receive_message', (messages) => {
+      console.log('Received messages:', messages);
+      if (Array.isArray(messages)) {
+        messages.forEach(displayMessage);
+      } else {
+        displayMessage(messages);
       }
     });
 
-    function selectUserFromSearch(userId, username) {
-      const user = { userId, username };
-      selectUser(user);
-      searchResults.innerHTML = '';
-      searchInput.value = '';
+    function displayMessage(msg) {
+      if (!isRelevantMessage(msg)) return;
+      
+      const messagesDiv = document.querySelector('.messages');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${msg.senderId === currentUserId ? 'sent' : 'received'}`;
+      
+      const time = new Date(msg.timestamp).toLocaleTimeString();
+      messageDiv.innerHTML = `
+        ${msg.content}
+        <div class="message-time">${time}</div>
+      `;
+      
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // Request initial user list once connected
-    socket.emit('get_users');
-
-    // Notifications
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
+    function isRelevantMessage(msg) {
+      return selectedUser && 
+        ((msg.senderId === currentUserId && msg.recipientId === selectedUser.userId) ||
+         (msg.senderId === selectedUser.userId && msg.recipientId === currentUserId));
     }
 
-    /********************************************************************
-     * VOICE CALL SECTION
-     ********************************************************************/
-    let localStream = null;
-    let remoteStream = null;
-    let peerConnection = null;
-    let receivedOffer = null;
-    let currentCallUser = null; // The user we are calling or who is calling us
-    let callInterval = null;
-    let callStartTime = 0;
+    // Typing indicator
+    messageInput.addEventListener('input', () => {
+      if (!selectedUser) return;
+      clearTimeout(typingTimeout);
+      socket.emit('typing', { recipientId: selectedUser.userId });
+      typingTimeout = setTimeout(() => {
+        socket.emit('stop_typing', { recipientId: selectedUser.userId });
+      }, TYPING_TIMER_LENGTH);
+    });
 
-    const callerPopup = document.getElementById('callerCallPopup');
-    const callerNameDisplay = document.getElementById('callerNameDisplay');
-    const callerStatusText = document.getElementById('callerStatusText');
-    const cancelCallerButton = document.getElementById('cancelCallerButton');
+    socket.on('user_typing', ({ userId }) => {
+      if (selectedUser?.userId === userId) {
+        typingIndicator.textContent = `${selectedUser.username} is typing...`;
+        typingIndicator.style.display = 'block';
+      }
+    });
 
-    const incomingCallPopup = document.getElementById('incomingCallPopup');
+    socket.on('user_stop_typing', ({ userId }) => {
+      if (selectedUser?.userId === userId) {
+        typingIndicator.style.display = 'none';
+      }
+    });
+
+    // Voice Call
+    const callControls = document.querySelector('.call-controls');
+    const callTimer = document.querySelector('.call-timer');
+    const muteButton = document.querySelector('.mute-button');
+    const endCallButton = document.querySelector('.end-call-button');
+    const incomingCallModal = document.getElementById('incomingCallModal');
     const incomingCallerName = document.getElementById('incomingCallerName');
-    const acceptCallButton = document.getElementById('acceptCallButton');
-    const declineCallButton = document.getElementById('declineCallButton');
+    const acceptCallButton = document.getElementById('acceptCall');
+    const rejectCallButton = document.getElementById('rejectCall');
 
-    const inCallInfo = document.getElementById('inCallInfo');
-    const inCallWithName = document.getElementById('inCallWithName');
-    const callTimer = document.getElementById('callTimer');
-    const endCallButtonInCall = document.getElementById('endCallButtonInCall');
+    let currentCallUser = null;
+    let callInterval = null;
 
-    const callIcon = document.getElementById('call-icon');
-    callIcon.addEventListener('click', startCall);
-
-    // ICE servers config: fill in your own STUN/TURN if you have them
-    const servers = {
-      iceServers: [
-        { urls: 'stun:192.168.16.1`:19302' },
-     
-        {
-          urls: 'turn:192.168.16.1:3478?transport=udp',
-          username: 'mercanhumar',
-           credential: 'Coral_2121'
-        }
-      ]
+    window.initiateCall = function(userId) {
+      if (currentCallUser) return;
+      currentCallUser = userId;
+      
+      socket.emit('call_initiated', { 
+        recipientId: userId
+      });
+      
+      callControls.classList.add('show');
+      startCallTimer();
     };
 
-    /********************************
-     *  Socket events for calls
-     ********************************/
-    socket.on('incomingCall', ({ from }) => {
-      currentCallUser = from;
-      incomingCallerName.textContent = 'Incoming call from ' + from;
-      incomingCallPopup.style.display = 'block';
+    muteButton.addEventListener('click', () => {
+      const isMuted = muteButton.querySelector('i').classList.contains('fa-microphone-slash');
+      muteButton.querySelector('i').className = `fas fa-microphone${isMuted ? '' : '-slash'}`;
+      toggleAudio();
     });
-    socket.on('callAccepted', () => {
-      // Hide caller popup
-      callerPopup.style.display = 'none';
-      inCallWithName.textContent = selectedUser?.username || currentCallUser || '...';
-      inCallInfo.style.display = 'block';
+
+    endCallButton.addEventListener('click', () => {
+      if (currentCallUser) {
+        socket.emit('call_ended', { 
+          recipientId: currentCallUser
+        });
+        endCall();
+      }
+    });
+
+    acceptCallButton.addEventListener('click', () => {
+      incomingCallModal.classList.remove('show');
+      socket.emit('call_accepted', { 
+        recipientId: currentCallUser
+      });
+      callControls.classList.add('show');
       startCallTimer();
     });
-    socket.on('callDeclined', () => {
-      alert('The user declined your call.');
-      callerPopup.style.display = 'none';
-      endCall();
-    });
-    socket.on('callEnded', () => {
-      endCall();
-    });
-    socket.on('offer', (description) => {
-      receivedOffer = description;
-    });
-    socket.on('answer', (description) => {
-      if (peerConnection) {
-        peerConnection.setRemoteDescription(new RTCSessionDescription(description));
-      }
-    });
-    socket.on('iceCandidate', (candidate) => {
-      if (peerConnection) {
-        peerConnection.addIceCandidate(new RTCIceCandidate(candidate))
-          .catch(error => console.error('Error adding ICE candidate:', error));
-      }
+
+    rejectCallButton.addEventListener('click', () => {
+      socket.emit('call_rejected', { 
+        recipientId: currentCallUser
+      });
+      incomingCallModal.classList.remove('show');
+      currentCallUser = null;
     });
 
-    cancelCallerButton.addEventListener('click', () => {
-      if (currentCallUser) {
-        socket.emit('callEnded', { from: currentUsername, to: currentCallUser });
-      }
-      endCall();
+    socket.on('incoming_call', ({ callerId, callerName }) => {
+      currentCallUser = callerId;
+      incomingCallerName.textContent = callerName;
+      incomingCallModal.classList.add('show');
     });
-    acceptCallButton.addEventListener('click', handleAcceptCall);
-    declineCallButton.addEventListener('click', handleDeclineCall);
-    endCallButtonInCall.addEventListener('click', () => {
-      if (currentCallUser) {
-        socket.emit('callEnded', { from: currentUsername, to: currentCallUser });
-      }
+
+    socket.on('call_accepted', () => {
+      // Call accepted, WebRTC handling is in webrtc.js
+    });
+
+    socket.on('call_rejected', () => {
+      alert('Call was rejected');
       endCall();
     });
 
-    /********************************
-     *  Call Timer
-     ********************************/
-    function formatTime(seconds) {
-      const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-      const s = (seconds % 60).toString().padStart(2, '0');
-      return `${m}:${s}`;
-    }
+    socket.on('call_ended', () => {
+      endCall();
+    });
+
     function startCallTimer() {
-      callStartTime = Math.floor(Date.now() / 1000);
+      let seconds = 0;
       callInterval = setInterval(() => {
-        const now = Math.floor(Date.now() / 1000);
-        const elapsed = now - callStartTime;
-        callTimer.textContent = formatTime(elapsed);
+        seconds++;
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        callTimer.textContent = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
       }, 1000);
     }
-    function stopCallTimer() {
-      clearInterval(callInterval);
-      callTimer.textContent = '00:00';
-    }
 
-    /********************************
-     *  Starting a Call
-     ********************************/
-    function startCall() {
-      if (!selectedUser) {
-        alert('No user selected to call.');
-        return;
-      }
-      currentCallUser = selectedUser.username;
-      callerPopup.style.display = 'block';
-      callerNameDisplay.textContent = 'Calling ' + currentCallUser;
-      callerStatusText.textContent = 'Ringing...';
-
-      socket.emit('callInitiated', { from: currentUsername, to: currentCallUser });
-
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          localStream = stream;
-          peerConnection = new RTCPeerConnection(servers);
-          peerConnection.addStream(localStream);
-
-          peerConnection.onaddstream = event => {
-            remoteStream = event.stream;
-            const audioElement = document.createElement('audio');
-            audioElement.srcObject = remoteStream;
-            audioElement.autoplay = true;
-            document.body.appendChild(audioElement);
-          };
-
-          peerConnection.onicecandidate = event => {
-            if (event.candidate && currentCallUser) {
-              socket.emit('iceCandidate', { to: currentCallUser, candidate: event.candidate });
-            }
-          };
-
-          return peerConnection.createOffer();
-        })
-        .then(offer => peerConnection.setLocalDescription(offer))
-        .then(() => {
-          if (currentCallUser) {
-            socket.emit('offer', { to: currentCallUser, description: peerConnection.localDescription });
-          }
-        })
-        .catch(error => {
-          console.error('Error accessing media devices:', error);
-          callerPopup.style.display = 'none';
-        });
-    }
-
-    /********************************
-     *  Accepting a Call
-     ********************************/
-    function handleAcceptCall() {
-      if (!currentCallUser) return;
-      socket.emit('callAccepted', { from: currentUsername, to: currentCallUser });
-      incomingCallPopup.style.display = 'none';
-
-      if (receivedOffer) {
-        if (!peerConnection) {
-          peerConnection = new RTCPeerConnection(servers);
-          peerConnectionSetup();
-        }
-
-        // Set remote description from the incoming offer
-        peerConnection.setRemoteDescription(new RTCSessionDescription(receivedOffer))
-          .then(() => navigator.mediaDevices.getUserMedia({ audio: true }))
-          .then(stream => {
-            localStream = stream;
-            peerConnection.addStream(localStream);
-            return peerConnection.createAnswer();
-          })
-          .then(answer => peerConnection.setLocalDescription(answer))
-          .then(() => socket.emit('answer', { to: currentCallUser, description: peerConnection.localDescription }))
-          .catch(error => console.error('Error handling offer:', error));
-
-        inCallWithName.textContent = currentCallUser || '...';
-        inCallInfo.style.display = 'block';
-        startCallTimer();
-      }
-    }
-
-    function peerConnectionSetup() {
-      peerConnection.onicecandidate = event => {
-        if (event.candidate && currentCallUser) {
-          socket.emit('iceCandidate', { to: currentCallUser, candidate: event.candidate });
-        }
-      };
-      peerConnection.onaddstream = event => {
-        remoteStream = event.stream;
-        const audioElement = document.createElement('audio');
-        audioElement.srcObject = remoteStream;
-        audioElement.autoplay = true;
-        document.body.appendChild(audioElement);
-      };
-    }
-
-    /********************************
-     *  Declining a Call
-     ********************************/
-    function handleDeclineCall() {
-      if (currentCallUser) {
-        socket.emit('callDeclined', { from: currentUsername, to: currentCallUser });
-      }
-      incomingCallPopup.style.display = 'none';
-    }
-
-    /********************************
-     *  Ending a Call
-     ********************************/
     function endCall() {
-      if (peerConnection) {
-        peerConnection.close();
-        peerConnection = null;
+      if (callInterval) {
+        clearInterval(callInterval);
+        callInterval = null;
       }
-      if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-        localStream = null;
-      }
-      callerPopup.style.display = 'none';
-      incomingCallPopup.style.display = 'none';
-      inCallInfo.style.display = 'none';
-      stopCallTimer();
       currentCallUser = null;
-      receivedOffer = null;
+      callControls.classList.remove('show');
+      callTimer.textContent = '00:00';
+      cleanupWebRTC();
     }
   </script>
 </body>

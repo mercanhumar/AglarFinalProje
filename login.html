@@ -10,56 +10,71 @@
       background-color: #f4f4f4;
       margin: 0;
       padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     .container {
       max-width: 400px;
-      margin: auto;
+      width: 100%;
       background: #fff;
-      padding: 20px;
+      padding: 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
     h2 {
       text-align: center;
+      margin-bottom: 30px;
+      color: #333;
     }
     .form-group {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
+      color: #555;
     }
     input[type="text"], input[type="password"] {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #ddd;
       border-radius: 4px;
       box-sizing: border-box;
+      font-size: 16px;
     }
     button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       background-color: #007bff;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #0056b3;
     }
     .error-message {
-      color: red;
+      color: #dc3545;
       margin-top: 10px;
       text-align: center;
+      display: none;
     }
-    .signup-link {
+    .sign-up-link {
       text-align: center;
-      margin-top: 15px;
+      margin-top: 20px;
+      color: #666;
     }
-    .signup-link a {
+    .sign-up-link a {
       color: #007bff;
       text-decoration: none;
+    }
+    .sign-up-link a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -67,7 +82,7 @@
   <div class="container">
     <h2>Login</h2>
     <div id="error-message" class="error-message"></div>
-    <form id="loginForm">
+    <form id="login-form">
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" required>
@@ -78,13 +93,13 @@
       </div>
       <button type="submit">Login</button>
     </form>
-    <div class="signup-link">
-      Don't have an account? <a href="/signup.html">Sign up here</a>
+    <div class="sign-up-link">
+      Don't have an account? <a href="register.html">Sign up here</a>
     </div>
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const username = document.getElementById('username').value;
@@ -123,5 +138,6 @@
       }
     });
   </script>
+  <script src="public/js/auth.js"></script>
 </body>
 </html>
