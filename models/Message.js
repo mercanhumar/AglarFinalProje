@@ -16,10 +16,28 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  status: {
+    type: String,
+    enum: ['sent', 'delivered', 'seen'],
+    default: 'sent'
   }
+}, { 
+  timestamps: true 
 });
 
-module.exports = mongoose.model('Message', messageSchema);
+// Static method to get conversation history
+messageSchema.statics.getConversation = async function(user1Id, user2Id, limit = 50) {
+  return this.find({
+    $or: [
+      { sender: user1Id, receiver: user2Id },
+      { sender: user2Id, receiver: user1Id }
+    ]
+  })
+  .sort({ createdAt: -1 })
+  .limit(limit)
+  .populate('sender', 'username')
+  .populate('receiver', 'username');
+};
+
+const Message = mongoose.model('Message', messageSchema);
+module.exports = Message;
